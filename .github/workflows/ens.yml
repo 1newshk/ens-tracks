@@ -1,0 +1,41 @@
+name: build-ens-tracks
+
+on:
+  schedule:
+    - cron: "37 1,4,7,10,13,16,19,22 * * *"   # 每 3 小時一次 (UTC)
+  workflow_dispatch: {}                        # 可以手動按 Run workflow
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: ens
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - run: pip install eccodes eccodeslib
+      - name: Build ens.json
+        run: |
+          mkdir -p site
+          ENS_OUT=site/ens.json python build_ens.py
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: site
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.d.outputs.page_url }}
+    steps:
+      - id: d
+        uses: actions/deploy-pages@v4
