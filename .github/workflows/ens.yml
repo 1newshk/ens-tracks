@@ -27,6 +27,7 @@ jobs:
         run: |
           mkdir -p site
           ENS_OUT=site/ens.json python build_ens.py
+          python build_genesis.py --out site/genesis.json
       - uses: actions/upload-pages-artifact@v3
         with:
           path: site
